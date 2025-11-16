@@ -147,6 +147,7 @@ import com.android.systemui.demomode.DemoModeController;
 import com.android.systemui.display.dagger.SystemUIDisplaySubcomponent;
 import com.android.systemui.edgelight.EdgeLightViewController;
 import com.android.systemui.charging.ChargingAnimationViewController;
+import com.android.systemui.nowplaying.NowPlayingViewController;
 import com.android.systemui.emergency.EmergencyGesture;
 import com.android.systemui.emergency.EmergencyGestureModule.EmergencyGestureIntentFactory;
 import com.android.systemui.flags.FeatureFlags;
@@ -500,6 +501,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
     private final EdgeLightViewController mEdgeLightViewController;
     private WallpaperDepthUtils mWallpaperDepthUtils;
     private final ChargingAnimationViewController mChargingAnimationViewController;
+    private final NowPlayingViewController mNowPlayingViewController;
 
     private final DisplayMetrics mDisplayMetrics;
 
@@ -788,6 +790,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
             EdgeLightViewController edgeLightViewController,
             WallpaperDepthUtils wallpaperDepthUtils,
             ChargingAnimationViewController chargingAnimationViewController,
+            NowPlayingViewController nowPlayingViewController,
             BurnInProtectionController burnInProtectionController
     ) {
         mContext = context;
@@ -942,6 +945,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
         mEdgeLightViewController = edgeLightViewController;
         mWallpaperDepthUtils = wallpaperDepthUtils;
         mChargingAnimationViewController = chargingAnimationViewController;
+        mNowPlayingViewController = nowPlayingViewController;
     }
 
     private void initBubbles(Bubbles bubbles) {
@@ -1206,6 +1210,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
                         () -> mTopUiController.setRequestTopUi(requestTopUi, componentTag)
                 )));
         attachCustomOverlays();
+        getNotifContainerParentView().addView(mNowPlayingViewController.getNowPlayingView(), 3);
     }
 
     private ViewGroup getScrimOverlayContainer() {
