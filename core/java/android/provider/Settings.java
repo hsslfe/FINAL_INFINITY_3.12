@@ -7828,6 +7828,11 @@ public final class Settings {
         public static final String HIDE_STATUS_BAR_IN_SCREENSHOT = "hide_status_bar_in_screenshot";
 
         /**
+         * @hide
+         */
+        public static final String STATUS_BAR_SHOW_MUSIC_TICKER = "status_bar_show_music_ticker";
+
+        /**
          * Keys we no longer back up under the current schema, but want to continue to
          * process when restoring historical backup datasets.
          *
