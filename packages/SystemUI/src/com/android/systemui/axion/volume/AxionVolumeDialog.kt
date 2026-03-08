@@ -136,6 +136,7 @@ class AxionVolumeDialog @Inject constructor(
                         ) {
                             AxionVolumeDialogContent(viewModel)
                         }
+                        VolumeStyleDispatcher(viewModel)
                     }
                 }
             }
