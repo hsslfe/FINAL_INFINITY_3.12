@@ -71,8 +71,8 @@ object MobileIconBinder {
         val networkTypeContainer = view.requireViewById<FrameLayout>(R.id.mobile_type_container)
         val iconView = view.requireViewById<ImageView>(R.id.mobile_signal)
         val mobileDrawable = SignalDrawable(view.context)
-        val mobileHdView = view.requireViewById<ImageView>(R.id.mobile_hd)
-        val mobileHdSpace = view.requireViewById<Space>(R.id.mobile_hd_space)
+        val roamingView = view.requireViewById<ImageView>(R.id.mobile_roaming)
+        val roamingSpace = view.requireViewById<Space>(R.id.mobile_roaming_space)
         val endSideRoamingView = view.requireViewById<ImageView>(R.id.mobile_roaming_updated)
         val dotView = view.requireViewById<StatusBarIconView>(R.id.status_bar_dot)
 
@@ -255,25 +255,15 @@ object MobileIconBinder {
                         }
                     }
 
-                    // Set the mobile HD indicator (VoLTE/VoNR)
-                    launch {
-                        viewModel.showHd.distinctUntilChanged().collect { isHd ->
-                            mobileHdView.isVisible = isHd
-                            mobileHdSpace.isVisible = isHd
-                        }
-                    }
-
-                    // Set the roaming indicator (single SIM - end side)
+                    // Set the roaming indicator
                     launch {
                         viewModel.isRoamingVisible.distinctUntilChanged().collect { isRoaming ->
-                            endSideRoamingView.isVisible = isRoaming
-                        }
-                    }
-
-                    // Set the roaming indicator (single SIM - end side)
-                    launch {
-                        viewModel.isRoamingVisible.distinctUntilChanged().collect { isRoaming ->
-                            endSideRoamingView.isVisible = isRoaming
+                            if (NewStatusBarIcons.isEnabled) {
+                                endSideRoamingView.isVisible = isRoaming
+                            } else {
+                                roamingView.isVisible = isRoaming
+                                roamingSpace.isVisible = isRoaming
+                            }
                         }
                     }
 
@@ -323,6 +313,7 @@ object MobileIconBinder {
                                 networkTypeView.imageTintList = tint
                             }
 
+                            roamingView.imageTintList = tint
                             endSideRoamingView.imageTintList = tint
                             mobileHdView.imageTintList = tint
                             activityIn.imageTintList = tint
