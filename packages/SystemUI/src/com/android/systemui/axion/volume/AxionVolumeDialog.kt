@@ -120,7 +120,7 @@ class AxionVolumeDialog @Inject constructor(
         private val compose = ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
 
-            repeatWhenAttached { _ ->
+            repeatWhenAttached { _: View ->
                 setContent {
                     MaterialTheme(
                         colorScheme = if (isSystemInDarkTheme())
@@ -134,9 +134,8 @@ class AxionVolumeDialog @Inject constructor(
                                 .padding(12.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            AxionVolumeDialogContent(viewModel)
+                            VolumeStyleDispatcher(viewModel)
                         }
-                        VolumeStyleDispatcher(viewModel)
                     }
                 }
             }
