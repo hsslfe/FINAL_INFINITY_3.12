@@ -249,6 +249,7 @@ public class LocalImageResolver {
         // image size is unreasonable (see checkHeader).
         } catch (IOException | RuntimeException e) {
             Log.d(TAG, "Couldn't use ImageDecoder for drawable, falling back to non-resized load.");
+           // Log.d(TAG, "Couldn't use ImageDecoder for drawable, falling back to non-resized load.");
             return null;
         }
     }
