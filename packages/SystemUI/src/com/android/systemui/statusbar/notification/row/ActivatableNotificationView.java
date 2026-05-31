@@ -132,6 +132,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     protected boolean mIsBlurSupported;
     protected boolean mIsLockscreenBlurSupported;
     protected boolean mUseTransparent;
+    protected boolean mIsDozing;
 
     public ActivatableNotificationView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -229,8 +230,8 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
 
     protected void updateBackground() {
         mBackgroundNormal.setVisibility(hideBackground() ? INVISIBLE : VISIBLE);
+        updateAxBlurEnabled();
     }
-
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
@@ -292,6 +293,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     void setTintColor(int color, boolean animated) {
         if (color != mBgTint) {
             mBgTint = color;
+            updateAxBlurEnabled();
             updateBackgroundTint(animated);
         }
     }
@@ -310,6 +312,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
         mOverrideTint = color;
         mOverrideAmount = overrideAmount;
         updateBackgroundTint(false /* animated */);
+        updateAxBlurEnabled();
     }
 
     protected void updateBackgroundTint() {
@@ -355,6 +358,40 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
             }
             mBackgroundNormal.setTint(color);
         }
+        updateAxBlurEnabled();
+    }
+
+    protected void updateAxBlurEnabled() {
+        if (mBackgroundNormal != null) {
+            mBackgroundNormal.setAxBlurEnabled(shouldUseAxBlurBackground());
+        }
+    }
+
+    protected boolean shouldUseAxBlurBackground() {
+        return isAxBlurKeyguardVisible()
+                && mBackgroundNormal.getVisibility() == VISIBLE
+                && !mIsDozing
+                && !hasAxBlurBlockingTint();
+    }
+
+    protected boolean isAxBlurKeyguardVisible() {
+        return mBackgroundNormal != null && mOnKeyguard;
+    }
+
+    protected boolean hasAxBlurBlockingTint() {
+        return mBgTint != NO_COLOR || (mOverrideTint != NO_COLOR && mOverrideAmount != 0f);
+    }
+
+    public void setDozing(boolean dozing) {
+        if (mIsDozing == dozing) {
+            return;
+        }
+        mIsDozing = dozing;
+        updateAxBlurEnabled();
+    }
+
+    public boolean isNotificationDozing() {
+        return mIsDozing;
     }
 
     protected void updateBackgroundClipping() {
@@ -886,6 +923,7 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
         }
 
         mOnKeyguard = onKeyguard;
+        updateAxBlurEnabled();
         if (mIsBlurSupported) {
             updateBackgroundTint();
         }
