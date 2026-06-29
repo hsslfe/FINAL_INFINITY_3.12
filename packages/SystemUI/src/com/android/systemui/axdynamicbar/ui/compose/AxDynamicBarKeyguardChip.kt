@@ -14,6 +14,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.keyframes
 import kotlin.math.abs
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -58,11 +59,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.drop
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,6 +80,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.graphics.graphicsLayer
@@ -280,6 +290,7 @@ private fun KeyguardChipBody(
 ) {
     val context = LocalContext.current
     val motionScheme = MaterialTheme.motionScheme
+    var toggleCount by remember { mutableIntStateOf(0) }
 
     val parts = rememberChargingParts(batteryString)
     val isMultiLineCharging = event is IslandEvent.Charging && parts.size >= 2
@@ -311,6 +322,10 @@ private fun KeyguardChipBody(
                     else
                         accent
                 )
+                .widthIn(min = 48.dp, max = 260.dp)
+                .clip(ChipShape)
+                .squishAnimation(toggleCount)
+                .background(accent)
                 .animateContentSize(motionScheme.defaultSpatialSpec())
                 .then(
                     if (progress != null) {
@@ -342,7 +357,11 @@ private fun KeyguardChipBody(
 
                         is IslandEvent.KeyguardIndication,
                         is IslandEvent.AppSwitch -> { }
-                        else -> viewModel.keyguardExpansion.toggle()
+                        else -> {
+                            val wasExpanded = viewModel.keyguardExpansion.isExpanded.value
+                            viewModel.keyguardExpansion.toggle()
+                            if (!wasExpanded) toggleCount++
+                        }
                     }
                 }
                 .padding(start = if (event is IslandEvent.Media) 6.dp else SpaceSm, end = if (event is IslandEvent.Media) 8.dp else SpaceMd),
@@ -1152,5 +1171,50 @@ private fun StopwatchTimeText(event: IslandEvent.Stopwatch, color: Color, modifi
             }
         }
         Text(formatStopwatch(elapsedMs), color = color, style = PillMono, modifier = modifier)
+    }
+}
+
+@Composable
+private fun Modifier.squishAnimation(toggleCount: Int): Modifier {
+    val scaleX = remember { Animatable(1f, visibilityThreshold = 0.01f) }
+    val scaleY = remember { Animatable(1f, visibilityThreshold = 0.01f) }
+    val currentToggleCount by rememberUpdatedState(toggleCount)
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { currentToggleCount }
+            .drop(1)
+            .collectLatest {
+                scaleX.snapTo(1f)
+                scaleY.snapTo(1f)
+                coroutineScope {
+                    launch {
+                        scaleX.animateTo(
+                            targetValue = 1f,
+                            animationSpec = keyframes {
+                                durationMillis = 400
+                                1.06f at 120 using FastOutSlowInEasing
+                                0.97f at 260
+                                1f at 400
+                            },
+                        )
+                    }
+                    launch {
+                        scaleY.animateTo(
+                            targetValue = 1f,
+                            animationSpec = keyframes {
+                                durationMillis = 400
+                                0.95f at 120 using FastOutSlowInEasing
+                                1.03f at 260
+                                1f at 400
+                            },
+                        )
+                    }
+                }
+            }
+    }
+
+    return this.graphicsLayer {
+        this.scaleX = scaleX.value
+        this.scaleY = scaleY.value
     }
 }
