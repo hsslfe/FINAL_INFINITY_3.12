@@ -611,6 +611,18 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         return scrimAlpha / 100.0f;
     }
 
+    private float getNotificationShadeScrimAlpha() {
+        int scrimAlpha = Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.NOTIFICATION_SCRIM_ALPHA,
+                -1,
+                UserHandle.USER_CURRENT);
+        if (scrimAlpha < 0 || scrimAlpha > 100) {
+            return Float.NaN;
+        }
+        return scrimAlpha / 100.0f;
+    }
+
     // TODO(b/270984686) recompute scrim height accurately, based on shade contents.
     /** Set corner radius of the bottom edge of the Notification scrim. */
     public void setNotificationBottomRadius(float radius) {
@@ -1099,11 +1111,13 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                     if (Flags.notificationShadeBlur() && isBlurCurrentlySupported()) {
                         // TODO (b/390730594): match any spec for controlling alpha based on shade
                         //  expansion fraction.
-                        float alpha = getShadeScrimAlpha();
-                        float behindAlpha = Float.isNaN(alpha)
-                                ? mState.getBehindAlpha() : alpha;
-                        float notifAlpha = Float.isNaN(alpha)
-                                ? mState.getNotifAlpha() : alpha;
+                        float behindSetting = getShadeScrimAlpha();
+                        float notifSetting = getNotificationShadeScrimAlpha();
+                        float behindAlpha = Float.isNaN(behindSetting)
+                                ? mState.getBehindAlpha() : behindSetting;
+                        float notifAlpha = Float.isNaN(notifSetting)
+                                ? (Float.isNaN(behindSetting) ? mState.getNotifAlpha() : behindSetting)
+                                : notifSetting;
                         mBehindAlpha = behindAlpha * mPanelExpansionFraction;
                         mBehindTint = mState.getBehindTint();
                         mNotificationsAlpha = notifAlpha * mPanelExpansionFraction;
@@ -1164,9 +1178,11 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                 } else if (mState == ScrimState.SHADE_LOCKED) {
                     // going from KEYGUARD to SHADE_LOCKED state
                     if (Flags.notificationShadeBlur()) {
-                        float alpha = getShadeScrimAlpha();
-                        float notifAlpha = Float.isNaN(alpha)
-                                ? mState.getNotifAlpha() : alpha;
+                        float notifSetting = getNotificationShadeScrimAlpha();
+                        float notifAlpha = Float.isNaN(notifSetting)
+                                ? (Float.isNaN(getShadeScrimAlpha())
+                                        ? mState.getNotifAlpha() : getShadeScrimAlpha())
+                                : notifSetting;
                         mNotificationsAlpha = notifAlpha * getInterpolatedFraction();
                     } else {
                         mNotificationsAlpha = getInterpolatedFraction();
