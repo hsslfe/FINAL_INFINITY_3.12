@@ -315,7 +315,6 @@ object MobileIconBinder {
 
                             roamingView.imageTintList = tint
                             endSideRoamingView.imageTintList = tint
-                            mobileHdView.imageTintList = tint
                             activityIn.imageTintList = tint
                             activityOut.imageTintList = tint
                             dotView.setDecorColor(colors.tint)

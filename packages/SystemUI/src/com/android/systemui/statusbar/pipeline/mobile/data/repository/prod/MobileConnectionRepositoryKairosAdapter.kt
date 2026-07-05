@@ -175,12 +175,6 @@ fun BuildScope.MobileConnectionRepositoryKairosAdapter(
                     "MobileConnectionRepositoryKairosAdapter(subId=${kairosRepo.subId}).hasPrioritizedNetworkCapabilities"
                 }
             ),
-        imsState =
-            kairosRepo.imsState.toStateFlow(
-                nameTag {
-                    "MobileConnectionRepositoryKairosAdapter(subId=${kairosRepo.subId}).imsState"
-                }
-            ),
         isInEcmMode = { kairosNetwork.transact { kairosRepo.isInEcmMode.sample() } },
     )
 
