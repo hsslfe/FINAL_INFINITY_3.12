@@ -24,7 +24,6 @@ import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.WindowManager
 import android.os.VibrationEffect
 import androidx.annotation.VisibleForTesting
 import com.android.systemui.Gefingerpoken
@@ -93,7 +92,6 @@ private constructor(
     private val statusBarWindowControllerStore: StatusBarWindowControllerStore,
     private val tunerService: TunerService,
     private val globalActionsComponent: Lazy<GlobalActionsComponent>,
-    private val windowManager: WindowManager,
 ) : ViewController<PhoneStatusBarView>(view), TunerService.Tunable {
 
     private lateinit var battery: BatteryMeterView
@@ -247,7 +245,6 @@ private constructor(
         
         systemIconsPopupController = SystemIconsPopupController(
             context = context,
-            windowManager = windowManager,
             onShowPowerMenu = { globalActionsComponent.get().handleShowGlobalActionsMenu() }
         )
 
@@ -553,7 +550,6 @@ private constructor(
         private val statusBarWindowControllerStore: StatusBarWindowControllerStore,
         private val tunerService: TunerService,
         private val globalActionsComponent: Lazy<GlobalActionsComponent>,
-        private val windowManager: WindowManager,
     ) {
         fun create(view: PhoneStatusBarView): PhoneStatusBarViewController {
             return PhoneStatusBarViewController(
@@ -579,7 +575,6 @@ private constructor(
                 statusBarWindowControllerStore,
                 tunerService,
                 globalActionsComponent,
-                windowManager,
             )
         }
     }
