@@ -134,6 +134,15 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     protected boolean mUseTransparent;
     protected boolean mIsDozing;
 
+    private static final String NOTIFICATION_ROW_TRANSPARENCY =
+            Settings.Secure.NOTIFICATION_ROW_TRANSPARENCY;
+    private static final String NOTIFICATION_ROW_TRANSPARENCY_LOCKSCREEN =
+            Settings.Secure.NOTIFICATION_ROW_TRANSPARENCY_LOCKSCREEN;
+
+    private boolean mRowTransparencyEnabled = true;
+    private boolean mRowTransparencyLockscreenEnabled = true;
+    private ContentObserver mRowTransparencyObserver;
+
     public ActivatableNotificationView(Context context, AttributeSet attrs) {
         super(context, attrs);
         setClipChildren(false);
@@ -368,7 +377,9 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     }
 
     protected boolean shouldUseAxBlurBackground() {
-        return (isAxBlurKeyguardVisible() || isHeadsUp())
+        boolean keyguardAllowed = mRowTransparencyLockscreenEnabled && isAxBlurKeyguardVisible();
+        boolean headsUpAllowed = mRowTransparencyEnabled && isHeadsUp();
+        return (keyguardAllowed || headsUpAllowed)
                 && mBackgroundNormal.getVisibility() == VISIBLE
                 && !mIsDozing
                 && !hasAxBlurBlockingTint();
@@ -380,6 +391,18 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
 
     protected boolean hasAxBlurBlockingTint() {
         return mBgTint != NO_COLOR || (mOverrideTint != NO_COLOR && mOverrideAmount != 0f);
+    }
+
+    private void updateRowTransparencySettings() {
+        mRowTransparencyEnabled = Settings.Secure.getInt(
+                mContext.getContentResolver(),
+                NOTIFICATION_ROW_TRANSPARENCY,
+                1) != 0;
+        mRowTransparencyLockscreenEnabled = Settings.Secure.getInt(
+                mContext.getContentResolver(),
+                NOTIFICATION_ROW_TRANSPARENCY_LOCKSCREEN,
+                1) != 0;
+        updateAxBlurEnabled();
     }
 
     public void setDozing(boolean dozing) {
@@ -940,6 +963,29 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
+
+        mRowTransparencyObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+            @Override
+            public void onChange(boolean selfChange) {
+                updateRowTransparencySettings();
+            }
+        };
+        mContext.getContentResolver().registerContentObserver(
+                Settings.Secure.getUriFor(NOTIFICATION_ROW_TRANSPARENCY),
+                false,
+                mRowTransparencyObserver);
+        mContext.getContentResolver().registerContentObserver(
+                Settings.Secure.getUriFor(NOTIFICATION_ROW_TRANSPARENCY_LOCKSCREEN),
+                false,
+                mRowTransparencyObserver);
+        updateRowTransparencySettings();
+    }
+
+        if (mRowTransparencyObserver != null) {
+            mContext.getContentResolver().unregisterContentObserver(mRowTransparencyObserver);
+            mRowTransparencyObserver = null;
+        }
+        
         if (!mOnDetachResetRoundness.isEmpty()) {
             for (SourceType sourceType : mOnDetachResetRoundness) {
                 requestRoundnessReset(sourceType);
