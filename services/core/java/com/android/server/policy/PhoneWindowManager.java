@@ -2484,6 +2484,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case RINGER_MODES:
                 toggleRingerModes();
                 break;
+            case AMBIENT_DISPLAY:
+                triggerAmbientDisplay();
+                break;
+            case SYSTEM_POPUP:
+                showSystemPopupFromGesture();
+                break;
             default:
                 break;
         }
@@ -7923,6 +7929,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             }
         }
         return mRearFlashCameraId;
+    }
+
+    private void showSystemPopupFromGesture() {
+        Intent intent = new Intent("com.android.systemui.action.SHOW_SYSTEM_ICONS_POPUP");
+        intent.setPackage("com.android.systemui");
+        intent.putExtra("at_bottom", true);
+        mContext.sendBroadcastAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
     }
 
     private class TorchModeCallback extends CameraManager.TorchCallback {
