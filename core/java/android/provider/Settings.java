@@ -7189,6 +7189,10 @@ public final class Settings {
          * @hide
          */
         public static final String QS_BT_SHOW_DIALOG = "qs_bt_show_dialog";
+        /**
+         * @hide
+         */
+        public static final String STATUSBAR_SYSTEM_ICONS_POPUP_ENABLED = "statusbar_system_icons_popup_enabled";
 
         /**
          * Whether to use the custom status bar header or not
