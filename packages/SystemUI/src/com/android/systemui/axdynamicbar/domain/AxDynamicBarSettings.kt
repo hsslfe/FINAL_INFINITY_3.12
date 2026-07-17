@@ -28,6 +28,7 @@ class AxDynamicBarSettings @Inject constructor(
         const val KEY_KEYGUARD_ENABLED = "ax_dynamic_bar_keyguard_enabled"
         const val KEY_KEYGUARD_BATTERY_CHIP_MODE = "ax_dynamic_bar_keyguard_battery_chip_mode"
         const val KEY_COMPACT_NOTIFICATIONS = "ax_dynamic_bar_compact_notifications"
+        const val KEY_CHIP_STYLE = "ax_dynamic_bar_chip_style"
     }
 
     private val _isEnabled = MutableStateFlow(false)
@@ -38,6 +39,9 @@ class AxDynamicBarSettings @Inject constructor(
 
     private val _keyguardBatteryChipMode = MutableStateFlow(1)
     val keyguardBatteryChipMode: StateFlow<Int> = _keyguardBatteryChipMode.asStateFlow()
+
+    private val _chipStyle = MutableStateFlow(0)
+    val chipStyle: StateFlow<Int> = _chipStyle.asStateFlow()
 
     private val _compactNotifications = MutableStateFlow(true)
     val compactNotifications: StateFlow<Boolean> = _compactNotifications.asStateFlow()
@@ -90,6 +94,12 @@ class AxDynamicBarSettings @Inject constructor(
             UserHandle.USER_ALL,
         )
         secureSettings.registerContentObserverForUserSync(
+            KEY_CHIP_STYLE,
+            false,
+            settingsObserver,
+            UserHandle.USER_ALL,
+        )
+        secureSettings.registerContentObserverForUserSync(
             KEY_COMPACT_NOTIFICATIONS,
             false,
             settingsObserver,
@@ -116,6 +126,8 @@ class AxDynamicBarSettings @Inject constructor(
             secureSettings.getIntForUser(KEY_KEYGUARD_ENABLED, 1, UserHandle.USER_CURRENT) == 1
         _keyguardBatteryChipMode.value =
             secureSettings.getIntForUser(KEY_KEYGUARD_BATTERY_CHIP_MODE, 1, UserHandle.USER_CURRENT)
+        _chipStyle.value =
+            secureSettings.getIntForUser(KEY_CHIP_STYLE, 0, UserHandle.USER_CURRENT)
         _compactNotifications.value =
             secureSettings.getIntForUser(KEY_COMPACT_NOTIFICATIONS, 1, UserHandle.USER_CURRENT) == 1
         _isHeadsUpEnabled.value =
