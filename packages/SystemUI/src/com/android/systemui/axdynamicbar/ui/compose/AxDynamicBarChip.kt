@@ -203,9 +203,12 @@ fun AxDynamicBarChip(
                         chipContentColorOn(rawAccent), MaterialTheme.motionScheme.fastEffectsSpec(), label = "content",
                     )
                 val useCircleStyle = chipStyle == 1 &&
-                    !isAlert &&
-                    event !is IslandEvent.Call &&
-                    !(event is IslandEvent.Sports && event.team2Name.isNotEmpty())
+                        !isAlert &&
+                        event !is IslandEvent.Call &&
+                        event !is IslandEvent.AudioRecording &&
+                        event !is IslandEvent.Timer &&
+                        event !is IslandEvent.Stopwatch &&
+                        !(event is IslandEvent.Sports && event.team2Name.isNotEmpty())
 
                 val progress = chipProgressFor(event, includeMediaProgress = useCircleStyle)
 
