@@ -42,6 +42,7 @@ private val HIDDEN_VIEW_IDS = listOf(
     R.id.clock_ls,
     R.id.keyguard_widgets,
     R.id.keyguard_info_widgets,
+    R.id.now_playing_view,
 )
 
 private fun Float.dpToPx(context: Context): Int =
