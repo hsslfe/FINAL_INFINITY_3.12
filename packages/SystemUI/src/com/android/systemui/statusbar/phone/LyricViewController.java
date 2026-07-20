@@ -70,6 +70,7 @@ public abstract class LyricViewController implements
 
     private final LyricsFetcher mLyricsFetcher;
     private boolean mMediaLyricsActive;
+    private final LyricsFetcher.Callback mLyricsCallback;
 
     private ColorStateList mTintColorStateList;
 
@@ -99,9 +100,10 @@ public abstract class LyricViewController implements
             return false;
         });
 
-        mLyricsFetcher = new LyricsFetcher(mContext, new LyricsFetcher.Callback() {
+        mLyricsFetcher = LyricsFetcher.getInstance(mContext);
+        mLyricsCallback = new LyricsFetcher.Callback() {
             @Override
-            public void onSyncedLineChanged(String line) {
+            public void onSyncedLineChanged(String prevLine, String line, String nextLine) {
                 if (!mEnabled) return;
                 if (line == null) {
                     if (mMediaLyricsActive) {
@@ -132,11 +134,11 @@ public abstract class LyricViewController implements
                     stopLyric();
                 }
             }
-        });
+        };
 
         Dependency.get(DarkIconDispatcher.class).addDarkReceiver(this);
         Dependency.get(NotificationListener.class).addNotificationHandler(this);
-        mLyricsFetcher.start();
+        mLyricsFetcher.addCallback(mLyricsCallback);
     }
 
     public void setEnabled(boolean enabled) {
@@ -211,7 +213,7 @@ public abstract class LyricViewController implements
 
     public void destroy() {
         if (mLyricsFetcher != null) {
-            mLyricsFetcher.stop();
+            mLyricsFetcher.removeCallback(mLyricsCallback);
         }
     }
 
