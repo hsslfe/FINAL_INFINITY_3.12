@@ -316,8 +316,6 @@ public class LyricsFetcher {
                 stopPolling();
                 mPlainLyricsDelivered = true;
                 mCallback.onPlainLyricsAvailable(resultPlain);
-                mLastPlainLyrics = resultPlain;
-                for (Callback cb : mCallbacks) cb.onPlainLyricsAvailable(resultPlain);
             } else if (didFail && mRetryCount < MAX_RETRIES) {
                 mRetryCount++;
                 mMainHandler.postDelayed(() -> {
