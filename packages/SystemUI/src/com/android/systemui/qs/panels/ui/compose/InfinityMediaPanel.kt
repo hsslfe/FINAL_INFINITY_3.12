@@ -104,7 +104,7 @@ private object InfinityMediaAppIconCache {
     }
 }
 
-private data class MediaState(
+data class MediaState(
     val title: String? = null,
     val artist: String? = null,
     val albumArt: Bitmap? = null,
@@ -125,6 +125,18 @@ fun rememberInfinityMediaHasSession(): Boolean {
         onDispose {}
     }
     return InfinitySharedMediaStore.mediaState.controller != null
+}
+
+@Composable
+fun rememberMediaState(): MediaState {
+    val context = LocalContext.current
+
+    DisposableEffect(context) {
+        InfinitySharedMediaStore.ensureInitialized(context)
+        onDispose {}
+    }
+
+    return InfinitySharedMediaStore.mediaState
 }
 
 @Composable
