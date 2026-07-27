@@ -82,6 +82,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -99,7 +100,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.android.systemui.res.R
-import com.android.systemui.qs.panels.ui.compose.SharedMediaState
+import com.android.systemui.qs.panels.ui.compose.MediaState
 import com.android.systemui.qs.panels.ui.compose.rememberMediaState
 import com.android.systemui.util.MemoryUtils
 import kotlinx.coroutines.coroutineScope
@@ -479,14 +480,14 @@ class SystemIconsPopupController(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(Unit) { detectTapGestures { onDismiss() } },
-            contentAlignment = if (atBottom) Alignment.BottomCenter else Alignment.TopEnd
+                contentAlignment = if (atBottom) Alignment.BottomCenter else Alignment.TopCenter
         ) {
             Column(
                 modifier = Modifier
                     .padding(
                         top = if (atBottom) 0.dp else 8.dp,
                         bottom = if (atBottom) 8.dp else 0.dp,
-                        end = if (atBottom) 0.dp else 16.dp
+                        end = 0.dp
                     )
                     .graphicsLayer {
                         translationX = offsetX.value.dp.toPx()
@@ -500,7 +501,7 @@ class SystemIconsPopupController(
                             TransformOrigin(1f, 0f)
                         }
                     },
-                horizontalAlignment = if (atBottom) Alignment.CenterHorizontally else Alignment.End
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
@@ -670,14 +671,14 @@ class SystemIconsPopupController(
 
         Box(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = if (atBottom) Alignment.BottomCenter else Alignment.TopEnd
+            contentAlignment = if (atBottom) Alignment.BottomCenter else Alignment.TopCenter
         ) {
             Column(
                 modifier = Modifier
                     .padding(
                         top = if (atBottom) 0.dp else 8.dp,
                         bottom = if (atBottom) 8.dp else 0.dp,
-                        end = if (atBottom) 0.dp else 16.dp
+                        end = 0.dp
                     )
                     .graphicsLayer {
                         translationX = offsetX.value.dp.toPx()
@@ -691,10 +692,7 @@ class SystemIconsPopupController(
                             TransformOrigin(1f, 0f)
                         }
                     },
-                horizontalAlignment =
-                    if (atBottom)
-                        Alignment.CenterHorizontally
-                    else Alignment.End
+                   horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
                     modifier = Modifier
@@ -1042,27 +1040,29 @@ class SystemIconsPopupController(
     }
 
     @Composable
-    private fun MediaControlCard(mediaState: SharedMediaState, onDismiss: () -> Unit) {
+    private fun MediaControlCard(mediaState: MediaState, onDismiss: () -> Unit) {
+        val context = LocalContext.current
         val controller = mediaState.controller
         val haptic = LocalHapticFeedback.current
 
-        fun launchMediaApp() {
-            try {
-                val pending = controller?.sessionActivity
-                if (pending != null) {
-                    pending.send()
-                } else {
-                    val pkg = mediaState.packageName ?: return
-                    val launchIntent = context.packageManager
-                        .getLaunchIntentForPackage(pkg)
-                        ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    launchIntent?.let { context.startActivity(it) }
-                }
-                onDismiss()
-            } catch (e: Exception) {
-            }
-        }
+fun launchMediaApp() {
+    val pkg = mediaState.packageName ?: return
 
+    try {
+        val intent = context.packageManager
+            .getLaunchIntentForPackage(pkg)
+            ?.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            )
+
+        if (intent != null) {
+            context.startActivity(intent)
+            onDismiss()
+        }
+    } catch (_: Exception) {
+    }
+}
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
