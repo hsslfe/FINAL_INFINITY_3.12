@@ -2473,9 +2473,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             case RINGER_MODES:
                 toggleRingerModes();
                 break;
-            case AMBIENT_DISPLAY:
-                triggerAmbientDisplay();
-                break;
             case SYSTEM_POPUP:
                 showSystemPopupFromGesture();
                 break;
