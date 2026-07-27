@@ -1240,6 +1240,12 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
         return container;
     }
 
+    private ViewGroup getNotifContainerParentView() {
+        ViewGroup rootView = (ViewGroup) getNotificationShadeWindowView()
+                .findViewById(R.id.scrim_behind).getParent();
+        return rootView.findViewById(R.id.notification_container_parent);
+    }
+
     private void attachCustomOverlays() {
         ViewGroup overlay = getScrimOverlayContainer();
         ViewGroup root = (ViewGroup) getNotificationShadeWindowView();
