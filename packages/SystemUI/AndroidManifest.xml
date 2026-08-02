@@ -434,6 +434,9 @@
     <!-- DataSwitch tile -->
     <uses-permission android:name="android.permission.WRITE_APN_SETTINGS" />
 
+    <!-- OnTheGo -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+
     <protected-broadcast android:name="com.android.settingslib.action.REGISTER_SLICE_RECEIVER" />
     <protected-broadcast android:name="com.android.settingslib.action.UNREGISTER_SLICE_RECEIVER" />
     <protected-broadcast android:name="com.android.settings.flashlight.action.FLASHLIGHT_CHANGED" />
@@ -602,7 +605,7 @@
 
         <!-- started from PhoneWindowManager -->
         <service android:name=".infinity.onthego.OnTheGoService"
-            android:process=":onthego"
+            android:foregroundServiceType="camera"
             android:exported="true" />
 
         <receiver android:name=".SysuiRestartReceiver"
