@@ -7539,6 +7539,18 @@ public final class Settings {
         public static final String LS_MEDIA_ART_BLUR_LEVEL = "ls_media_art_blur_level";
 
         /**
+         * Whether to use media artwork as QS scrim background
+         * @hide
+         */
+        public static final String QS_MEDIA_ART_SCRIM_ENABLED = "qs_media_art_scrim_enabled";
+
+        /**
+         * Dim amount for media artwork scrim
+         * @hide
+         */
+        public static final String QS_MEDIA_ART_DIM_AMOUNT = "qs_media_art_dim_amount";
+
+        /**
          * Whether edge light is enabled
          * @hide
          */
