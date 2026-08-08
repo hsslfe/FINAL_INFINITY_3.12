@@ -33,6 +33,7 @@ import android.annotation.IntDef;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.database.ContentObserver;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.UserHandle;
@@ -387,6 +388,19 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
 
     private boolean mViewsAttached;
 
+    private ContentObserver mCustomColorObserver;
+
+    private void registerCustomColorObserver() {
+        ContentResolver resolver = mContext.getContentResolver();
+        for (String key : ShadeColors.CUSTOM_COLOR_KEYS) {
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(key),
+                    false,
+                    mCustomColorObserver,
+                    UserHandle.USER_ALL);
+        }
+    }
+
     @Inject
     public ScrimController(
             LightBarController lightBarController,
@@ -458,6 +472,13 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         mKeyguardInteractor = keyguardInteractor;
         mMainDispatcher = mainDispatcher;
         mMediaArtScrimController = new MediaArtScrimController(context);
+        mCustomColorObserver = new ContentObserver(mHandler) {
+            @Override
+            public void onChange(boolean selfChange) {
+                updateThemeColors();
+                applyAndDispatchState();
+            }
+        };
     }
 
     /**
@@ -469,6 +490,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         mScrimBehind = behindScrim;
         mScrimInFront = scrimInFront;
         updateThemeColors();
+        registerCustomColorObserver();
         mNotificationsScrim.setScrimName(getScrimName(mNotificationsScrim));
         mScrimBehind.setScrimName(getScrimName(mScrimBehind));
         mScrimInFront.setScrimName(getScrimName(mScrimInFront));
@@ -615,8 +637,10 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         }
         if (Flags.notificationShadeBlur()) {
             for (ScrimState state : ScrimState.values()) {
-                state.setNotificationScrimColor(getNotificationsScrimColor());
-                state.setShadePanelColor(getShadePanelColor());
+                if (state != ScrimState.BOUNCER && state != ScrimState.BOUNCER_SCRIMMED) {
+                    state.setNotificationScrimColor(getNotificationsScrimColor());
+                    state.setShadePanelColor(getShadePanelColor());
+                }
             }
         }
         applyAndDispatchState();
@@ -1139,7 +1163,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                         float behindAlpha = Float.isNaN(behindSetting)
                                 ? mState.getBehindAlpha() : behindSetting;
                         float notifAlpha = Float.isNaN(notifSetting)
-                                ? (Float.isNaN(behindSetting) ? mState.getNotifAlpha() : behindSetting)
+                                ? mState.getNotifAlpha()
                                 : notifSetting;
                         mBehindAlpha = behindAlpha * mPanelExpansionFraction;
                         mBehindTint = mState.getBehindTint();
@@ -1203,8 +1227,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                     if (Flags.notificationShadeBlur()) {
                         float notifSetting = getNotificationShadeScrimAlpha();
                         float notifAlpha = Float.isNaN(notifSetting)
-                                ? (Float.isNaN(getShadeScrimAlpha())
-                                        ? mState.getNotifAlpha() : getShadeScrimAlpha())
+                                ? mState.getNotifAlpha()
                                 : notifSetting;
                         mNotificationsAlpha = notifAlpha * getInterpolatedFraction();
                     } else {
@@ -1218,7 +1241,15 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                     // closes.
                     mNotificationsAlpha = 0;
                 } else {
-                    mNotificationsAlpha = Math.max(1.0f - getInterpolatedFraction(), mQsExpansion);
+                    float expansionAlpha =
+                            Math.max(1.0f - getInterpolatedFraction(), mQsExpansion);
+                    if (Flags.notificationShadeBlur()) {
+                        float notifSetting = getNotificationShadeScrimAlpha();
+                        if (!Float.isNaN(notifSetting)) {
+                            expansionAlpha *= notifSetting;
+                        }
+                    }
+                    mNotificationsAlpha = expansionAlpha;
                 }
                 mNotificationsTint = mState.getNotifTint();
                 mBehindTint = behindTint;
@@ -1387,7 +1418,11 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
             mScrimBehind.setColors(mColors, animateBehindScrim);
 
                 if (!shouldSkipNotificationsScrimUpdate()) {
-                    mNotificationsScrim.setColors(mColors, animateScrimNotifications);
+                    boolean customColorActive = hasCustomNotifScrimColor();
+                    mNotificationsScrim.setBlendWithMainColor(!customColorActive);
+                    if (!customColorActive) {
+                        mNotificationsScrim.setColors(mColors, animateScrimNotifications);
+                    }
                 }
              }
 
@@ -1472,6 +1507,14 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     private boolean shouldSkipNotificationsScrimUpdate() {
         return mMediaArtScrimController != null 
             && mMediaArtScrimController.isMediaArtApplied();
+    }
+
+    private boolean hasCustomNotifScrimColor() {
+        return Settings.System.getIntForUser(
+                mContext.getContentResolver(),
+                Settings.System.CUSTOM_NOTIF_SCRIM_COLOR_ENABLED,
+                0,
+                UserHandle.USER_CURRENT) == 1;
     }
 
     public void notifyBrightnessMirrorChanged(boolean showing) {
@@ -1791,8 +1834,10 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         }
         for (ScrimState state : ScrimState.values()) {
             state.setBouncerSurfaceColor(surface);
-            state.setShadePanelColor(getShadePanelColor());
-            state.setNotificationScrimColor(getNotificationsScrimColor());
+            if (state != ScrimState.BOUNCER && state != ScrimState.BOUNCER_SCRIMMED) {
+                state.setShadePanelColor(getShadePanelColor());
+                state.setNotificationScrimColor(getNotificationsScrimColor());
+            }
         }
 
         mNeedsDrawableColorUpdate = true;
@@ -1803,7 +1848,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     }
 
     private int getShadePanelColor() {
-        return ShadeColors.shadePanel(mContext, isBlurCurrentlySupported(), true);
+        return ShadeColors.shadePanel(mContext, isBlurCurrentlySupported(), true, true);
     }
 
     private void onThemeChanged() {

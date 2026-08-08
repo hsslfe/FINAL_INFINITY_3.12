@@ -27,7 +27,12 @@ object BouncerColors {
     @JvmStatic
     fun Context.surfaceColor(blurSupported: Boolean): Int {
         return if (blurSupported) {
-            ShadeColors.shadePanel(context = this, blurSupported = blurSupported, withScrim = true)
+            ShadeColors.shadePanel(
+                context = this,
+                blurSupported = blurSupported,
+                withScrim = true,
+                allowCustomColor = false,
+            )
         } else {
             getColor(color.bouncer_fallback_bg)
         }
