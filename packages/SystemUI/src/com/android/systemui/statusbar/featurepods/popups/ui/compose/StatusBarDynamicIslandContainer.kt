@@ -45,11 +45,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.systemui.statusbar.featurepods.popups.ui.model.PopupChipId
@@ -62,6 +63,7 @@ import kotlin.math.abs
 fun StatusBarDynamicIslandContainer(
     chips: List<PopupChipModel.Shown>,
     onMediaControlPopupVisibilityChanged: (Boolean) -> Unit,
+    onIslandBoundsChanged: (android.graphics.Rect) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val cutoutSpec = rememberDynamicIslandCutoutSpec()
@@ -182,9 +184,19 @@ fun StatusBarDynamicIslandContainer(
                 .graphicsLayer {
                     alpha = overallAlpha
                 }
-                .clip(RoundedCornerShape(50)),
+                .clip(RoundedCornerShape(50))
+                .onGloballyPositioned { coordinates ->
+                    val b = coordinates.boundsInWindow()
+                    onIslandBoundsChanged(
+                        android.graphics.Rect(
+                            b.left.toInt(), b.top.toInt(), b.right.toInt(), b.bottom.toInt(),
+                        )
+                    )
+                },
         contentAlignment = Alignment.Center,
     ) {
+        if (selectedChip == null) return@Box
+
         AnimatedContent(
             targetState = chipToRender.chipId,
             transitionSpec = {
