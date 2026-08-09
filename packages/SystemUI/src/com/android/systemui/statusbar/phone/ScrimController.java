@@ -389,6 +389,10 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     private boolean mViewsAttached;
 
     private ContentObserver mCustomColorObserver;
+    private float mCachedShadeScrimAlpha = Float.NaN;
+    private float mCachedNotifShadeScrimAlpha = Float.NaN;
+    private boolean mScrimAlphaSettingsCached = false;
+    private ContentObserver mScrimAlphaSettingsObserver;
 
     private void registerCustomColorObserver() {
         ContentResolver resolver = mContext.getContentResolver();
@@ -399,6 +403,26 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                     mCustomColorObserver,
                     UserHandle.USER_ALL);
         }
+    }
+
+    private void registerScrimAlphaSettingsObserver() {
+        ContentResolver resolver = mContext.getContentResolver();
+        resolver.registerContentObserver(
+                Settings.System.getUriFor(Settings.System.SHADE_SCRIM_ALPHA),
+                false,
+                mScrimAlphaSettingsObserver,
+                UserHandle.USER_ALL);
+        resolver.registerContentObserver(
+                Settings.System.getUriFor(Settings.System.NOTIFICATION_SCRIM_ALPHA),
+                false,
+                mScrimAlphaSettingsObserver,
+                UserHandle.USER_ALL);
+    }
+
+    private void refreshScrimAlphaSettingsCache() {
+        mCachedShadeScrimAlpha = readShadeScrimAlphaSetting();
+        mCachedNotifShadeScrimAlpha = readNotificationShadeScrimAlphaSetting();
+        mScrimAlphaSettingsCached = true;
     }
 
     @Inject
@@ -479,6 +503,13 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                 applyAndDispatchState();
             }
         };
+        mScrimAlphaSettingsObserver = new ContentObserver(mHandler) {
+            @Override
+            public void onChange(boolean selfChange) {
+                refreshScrimAlphaSettingsCache();
+                applyAndDispatchState();
+            }
+        };
     }
 
     /**
@@ -491,6 +522,8 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         mScrimInFront = scrimInFront;
         updateThemeColors();
         registerCustomColorObserver();
+        registerScrimAlphaSettingsObserver();
+        refreshScrimAlphaSettingsCache();
         mNotificationsScrim.setScrimName(getScrimName(mNotificationsScrim));
         mScrimBehind.setScrimName(getScrimName(mScrimBehind));
         mScrimInFront.setScrimName(getScrimName(mScrimInFront));
@@ -647,6 +680,20 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
     }
 
     private float getShadeScrimAlpha() {
+        if (!mScrimAlphaSettingsCached) {
+            refreshScrimAlphaSettingsCache();
+        }
+        return mCachedShadeScrimAlpha;
+    }
+
+    private float getNotificationShadeScrimAlpha() {
+        if (!mScrimAlphaSettingsCached) {
+            refreshScrimAlphaSettingsCache();
+        }
+        return mCachedNotifShadeScrimAlpha;
+    }
+
+    private float readShadeScrimAlphaSetting() {
         int scrimAlpha = Settings.System.getIntForUser(
                 mContext.getContentResolver(),
                 Settings.System.SHADE_SCRIM_ALPHA,
@@ -658,7 +705,7 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
         return scrimAlpha / 100.0f;
     }
 
-    private float getNotificationShadeScrimAlpha() {
+    private float readNotificationShadeScrimAlphaSetting() {
         int scrimAlpha = Settings.System.getIntForUser(
                 mContext.getContentResolver(),
                 Settings.System.NOTIFICATION_SCRIM_ALPHA,
