@@ -277,6 +277,7 @@ constructor(
                                         current.copy(
                                             dynamicIslandEnabled =
                                                 context.contentResolver.readDynamicIslandEnabled()
+                                        )
                                     gradientStartColorUri ->
                                         current.copy(
                                             gradientStartColor =
@@ -309,10 +310,11 @@ constructor(
                     statusBarClockUri,
                     statusBarClockChipUri,
                     dynamicIslandUri,
+                    gradientStartColorUri,
+                    gradientEndColorUri,
+                    gradientAngleUri,
+                    gradientMaskTextUri
                 )
-                val urisToObserve = listOf(clockAutoHideUri, iconHideListUri, statusBarClockUri,
-                    statusBarClockChipUri, gradientStartColorUri, gradientEndColorUri, gradientAngleUri,
-                    gradientMaskTextUri)
                 urisToObserve.forEach { uri ->
                     context.contentResolver.registerContentObserver(
                         uri,
