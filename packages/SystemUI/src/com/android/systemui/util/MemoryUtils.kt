@@ -24,7 +24,21 @@ object MemoryUtils {
     @JvmStatic
     fun releaseMemory() {
         try {
-            ActivityManager.getService().releaseMemory(500, 60, false, false)
+            try {
+    val am = ActivityManager.getService()
+    val method = am.javaClass.getMethod(
+        "releaseMemory",
+        Int::class.java,
+        Int::class.java,
+        Boolean::class.java,
+        Boolean::class.java
+    )
+    method.invoke(am, 500, 60, false, false)
+    Log.d(TAG, "releaseMemory via reflection")
+} catch (e: Exception) {
+    Runtime.getRuntime().gc()
+    Log.d(TAG, "Fallback GC triggered")
+}
             Log.d(TAG, "Memory release triggered successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to release memory", e)
