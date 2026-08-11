@@ -1842,7 +1842,10 @@ public class ActivityManager {
      */
     @TestApi
     static public boolean isHighEndGfx() {
-        return false;
+        return !isLowRamDeviceStatic()
+                && !RoSystemProperties.CONFIG_AVOID_GFX_ACCEL
+                && !Resources.getSystem()
+                        .getBoolean(com.android.internal.R.bool.config_avoidGfxAccel);
     }
 
     /**
