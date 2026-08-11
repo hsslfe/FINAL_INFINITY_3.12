@@ -26,6 +26,9 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.database.ContentObserver;
+import android.os.Handler;
+import android.os.Looper;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -961,15 +964,17 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
     }
 
     @Override
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
 
-        mRowTransparencyObserver = new ContentObserver(new Handler(Looper.getMainLooper())) {
+        mRowTransparencyObserver = new ContentObserver(
+                new Handler(Looper.getMainLooper())) {
             @Override
             public void onChange(boolean selfChange) {
                 updateRowTransparencySettings();
             }
         };
+
         mContext.getContentResolver().registerContentObserver(
                 Settings.Secure.getUriFor(NOTIFICATION_ROW_TRANSPARENCY),
                 false,
@@ -981,11 +986,16 @@ public abstract class ActivatableNotificationView extends ExpandableOutlineView 
         updateRowTransparencySettings();
     }
 
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+
         if (mRowTransparencyObserver != null) {
-            mContext.getContentResolver().unregisterContentObserver(mRowTransparencyObserver);
+            mContext.getContentResolver().unregisterContentObserver(
+                    mRowTransparencyObserver);
             mRowTransparencyObserver = null;
         }
-        
+
         if (!mOnDetachResetRoundness.isEmpty()) {
             for (SourceType sourceType : mOnDetachResetRoundness) {
                 requestRoundnessReset(sourceType);
