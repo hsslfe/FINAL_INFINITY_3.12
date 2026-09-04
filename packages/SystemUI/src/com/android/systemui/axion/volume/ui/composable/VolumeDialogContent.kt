@@ -154,8 +154,8 @@ private fun CollapsedVolumeDialog(viewModel: AxionVolumeDialogViewModel) {
     ) {
         AxBlurSurface(
             modifier = Modifier.size(VolumeButtonsSize),
-            shape = RoundedCornerShape(VolumeButtonsSize / 2),
-            cornerRadius = VolumeButtonsSize / 2,
+            shape = RoundedCornerShape(cornerRadius),
+            cornerRadius = cornerRadius,
             surfaceColor = AxBlurSurfaceDefaults.surfaceColor(),
             contentAlignment = Alignment.Center,
         ) {
@@ -173,8 +173,8 @@ private fun CollapsedVolumeDialog(viewModel: AxionVolumeDialogViewModel) {
         AxBlurSurface(
             modifier = Modifier
                 .width(SliderWidthCollapsed),
-            shape = RoundedCornerShape(32.dp),
-            cornerRadius = 32.dp,
+            shape = RoundedCornerShape(cornerRadius),
+            cornerRadius = cornerRadius,
             surfaceColor = AxBlurSurfaceDefaults.surfaceColor(),
             contentAlignment = Alignment.Center,
         ) {
