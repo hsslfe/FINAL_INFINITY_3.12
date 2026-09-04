@@ -22,6 +22,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -44,8 +45,6 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.basicMarquee
-import com.android.axion.blur.AxBlurSurface
-import com.android.axion.blur.AxBlurSurfaceDefaults
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.android.systemui.axion.volume.domain.model.AxionStreamInfo
@@ -93,11 +92,11 @@ fun AxionVolumeDialogContent(
         if (isExpanded) {
             showCollapsed = false
             delay(DialogAnimDuration.toLong())
-            if (isVisible) showExpanded = true
+            showExpanded = true
         } else {
             showExpanded = false
             delay(DialogAnimDuration.toLong())
-            if (isVisible) showCollapsed = true
+            showCollapsed = true
         }
     }
 
@@ -152,31 +151,22 @@ private fun CollapsedVolumeDialog(viewModel: AxionVolumeDialogViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        AxBlurSurface(
-            modifier = Modifier.size(VolumeButtonsSize),
-            shape = RoundedCornerShape(cornerRadius),
-            cornerRadius = cornerRadius,
-            surfaceColor = AxBlurSurfaceDefaults.surfaceColor(),
-            contentAlignment = Alignment.Center,
-        ) {
-            RingerButton(
-                ringerMode = ringerMode,
-                onClick = {
-                    viewModel.rescheduleTimeout()
-                    viewModel.toggleExpanded()
-                },
-                size = VolumeButtonsSize,
-                cornerRadius = VolumeButtonsSize / 2
-            )
-        }
+        RingerButton(
+            ringerMode = ringerMode,
+            onClick = { 
+                viewModel.rescheduleTimeout()
+                viewModel.toggleExpanded() 
+            },
+            size = VolumeButtonsSize,
+            cornerRadius = VolumeButtonsSize / 2
+        )
 
-        AxBlurSurface(
+        Box(
             modifier = Modifier
-                .width(SliderWidthCollapsed),
-            shape = RoundedCornerShape(cornerRadius),
-            cornerRadius = cornerRadius,
-            surfaceColor = AxBlurSurfaceDefaults.surfaceColor(),
-            contentAlignment = Alignment.Center,
+                .width(SliderWidthCollapsed)
+                .clip(RoundedCornerShape(32.dp))
+                .background(MaterialTheme.colorScheme.surfaceBright),
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -287,12 +277,11 @@ private fun ExpandedPanelContent(
     cornerRadius: Dp,
     isLandscape: Boolean = false
 ) {
-    AxBlurSurface(
+    Box(
         modifier = Modifier
-            .width(panelWidth),
-        shape = RoundedCornerShape(cornerRadius),
-        cornerRadius = cornerRadius,
-        surfaceColor = AxBlurSurfaceDefaults.surfaceColor(),
+            .width(panelWidth)
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(MaterialTheme.colorScheme.surfaceBright)
     ) {
         Column(
             modifier = Modifier.padding(vertical = 12.dp),
