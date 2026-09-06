@@ -410,7 +410,6 @@ public class FooterView extends StackScrollerDecorView {
                                     1) == 1
                                     ? com.android.internal.R.color.materialColorSurfaceContainerHigh
                                     : com.android.internal.R.color.materialColorSurfaceContainer);
-                            com.android.internal.R.color.materialColorSurfaceBright);
                 }
             } else {
                 scHigh = mContext.getColor(
