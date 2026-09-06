@@ -44,6 +44,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.provider.Settings;
 
 import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
@@ -1471,7 +1472,6 @@ public class ScrimController implements ViewTreeObserver.OnPreDrawListener, Dump
                         mNotificationsScrim.setColors(mColors, animateScrimNotifications);
                     }
                 }
-             }
 
             if (mScrimBehind != null) {
                 dispatchBackScrimState(mScrimBehind.getViewAlpha());
