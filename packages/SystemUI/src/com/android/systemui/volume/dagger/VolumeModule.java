@@ -135,17 +135,17 @@ public interface VolumeModule {
             MSDLPlayer msdlPlayer,
             SystemClock systemClock,
             VolumeDialogInteractor interactor) {
-        final boolean useAxionVolumeDialog =
-                secureSettings.get().getIntForUser(
-                        "use_axion_volume_dialog",
-                        1,
-                        UserHandle.USER_CURRENT
-                ) == 1;
-        if (useAxionVolumeDialog) {
-            return axionVolumeDialogPlugin.get();
-        } else if (Flags.volumeRedesign()) {
-            return volumeDialogProvider.get();
-        } else {
+        final int volumeDialogType = Settings.System.getInt(
+                context.getContentResolver(),
+                "volume_dialog_type",
+                1);
+        switch (volumeDialogType) {
+            case 0:
+                return axionVolumeDialogPlugin.get();
+            case 1:
+                return volumeDialogProvider.get();
+            case 2:
+            default:
             VolumeDialogImpl impl = new VolumeDialogImpl(
                     context,
                     volumeDialogController,
