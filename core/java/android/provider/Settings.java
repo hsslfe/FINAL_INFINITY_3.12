@@ -22068,6 +22068,12 @@ public final class Settings {
         public static final String PM_DOWNGRADE_ALLOWED = "pm_downgrade_allowed";
 
         /**
+         * Control whether to hide screen capture status from apps.
+         * @hide
+         */
+        public static final String HIDE_SCREEN_CAPTURE_STATUS = "hide_screen_capture_status";
+
+        /**
          * Control whether FLAG_SECURE is ignored for all windows.
          * @hide
          */
